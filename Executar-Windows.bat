@@ -2,7 +2,8 @@
 setlocal
 
 set "PROJECT_DIR=%~dp0"
-set "BUILD_DIR=%PROJECT_DIR%build\windows-release"
+set "PROJECT_DIR=%PROJECT_DIR:~0,-1%"
+set "BUILD_DIR=%PROJECT_DIR%\build\windows-release"
 set "BUILD_ONLY=0"
 
 if /I "%~1"=="--build-only" set "BUILD_ONLY=1"
@@ -23,7 +24,7 @@ if errorlevel 1 (
     goto :error
 )
 
-if not defined VCPKG_ROOT set "VCPKG_ROOT=%PROJECT_DIR%.tools\vcpkg"
+if not defined VCPKG_ROOT set "VCPKG_ROOT=%PROJECT_DIR%\.tools\vcpkg"
 
 if not exist "%VCPKG_ROOT%\vcpkg.exe" (
     echo Preparando o gerenciador de dependencias vcpkg...
