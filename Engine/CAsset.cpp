@@ -1,4 +1,6 @@
+#ifdef _MSC_VER
 #pragma warning(disable : 4267)
+#endif
 #define STB_IMAGE_IMPLEMENTATION 
 
 #include "CAsset.h"

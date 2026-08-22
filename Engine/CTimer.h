@@ -4,8 +4,7 @@
 // INCLUDES 
 ////////////////////////////////////////////////////////////////////// 
  
-#include <windows.h> 
-#include <math.h> 
+#include <chrono>
 
  
 ////////////////////////////////////////////////////////////////////// 
@@ -15,22 +14,11 @@
 class CTimer
 { 
 private: 
-    //performance timer variables 
-    __int64       m_i64PerformanceTimerStart; 
-    __int64       m_i64PerformanceTimerElapsed; 
- 
-    //multimedia timer variables 
-    unsigned long m_ulMMTimerElapsed; 
-    unsigned long m_ulMMTimerStart; 
- 
-    //general timer variables 
-    __int64       m_i64Frequency; 
-    float         m_fResolution; 
-    bool          m_bPerformanceTimer; 
+    std::chrono::steady_clock::time_point m_StartTime;
+    std::chrono::steady_clock::time_point m_LastFrameTime;
  
     //FPS variables 
-    float m_fTime1; 
-    float m_fTime2; 
+    float m_fSampleElapsed;
     float m_fDiffTime; 
     float m_fFPS; 
     int m_iFramesElapsed; 

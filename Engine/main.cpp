@@ -55,9 +55,15 @@ int main()
 		return -1;
 	}
 
-	// Configure GLFW to support OpenGL 4.6 Core Profile
+	// A Apple disponibiliza o perfil 4.1. No Windows usamos 3.3, suficiente
+	// para os shaders e recursos deste projeto e compativel com mais GPUs.
+#ifdef __APPLE__
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+#else
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#endif
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_SAMPLES, 4); // 4x antialiasing
 
@@ -80,6 +86,9 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
+	// Comeca sem VSync para nao limitar o aplicativo a divisores da taxa do
+	// monitor (por exemplo, 30 ou 15 FPS). A tecla V continua alternando o modo.
+	glfwSwapInterval(0);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// Calculate the centered position

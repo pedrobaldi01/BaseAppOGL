@@ -1,5 +1,7 @@
 #pragma once
+#ifdef _MSC_VER
 #pragma warning(disable : 4018)
+#endif
 
 #include <GL/glew.h>
 #include <Engine/stb_image.h>

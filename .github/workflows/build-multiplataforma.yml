@@ -1,0 +1,29 @@
+name: Build multiplataforma
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    steps:
+      - name: Baixar o projeto
+        uses: actions/checkout@v4
+
+      - name: Configurar e compilar
+        run: |
+          chmod +x ./Executar-macOS.command
+          ./Executar-macOS.command --build-only
+
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - name: Baixar o projeto
+        uses: actions/checkout@v4
+
+      - name: Configurar e compilar
+        shell: cmd
+        run: Executar-Windows.bat --build-only

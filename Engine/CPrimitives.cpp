@@ -1,5 +1,7 @@
+#ifdef _MSC_VER
 #pragma warning(disable : 4244)
 #pragma warning(disable : 4267)
+#endif
 
 #include "CPrimitives.h"
 #include <GL/glew.h>  // or #include <glad/glad.h> depending on your setup

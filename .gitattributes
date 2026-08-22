@@ -3,6 +3,10 @@
 ###############################################################################
 * text=auto
 
+# Inicializadores nativos de cada sistema operacional.
+*.bat text eol=crlf
+*.command text eol=lf
+
 ###############################################################################
 # Set default behavior for command prompt diff.
 #

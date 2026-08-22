@@ -1,6 +1,8 @@
 #pragma once
+#ifdef _MSC_VER
 #pragma warning(disable : 4099)
 #pragma warning(disable : 4005)
+#endif
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>

@@ -1,9 +1,3 @@
-# pragma comment(lib, "secur32.lib")
-# pragma comment(lib, "winmm.lib")
-# pragma comment(lib, "dmoguids.lib")
-# pragma comment(lib, "wmcodecdspuuid.lib")
-# pragma comment(lib, "msdmo.lib")
-# pragma comment(lib, "Strmiids.lib")
 #include "CTimer.h"
 
 
@@ -14,7 +8,9 @@
     // Rets:    None 
     //---------------------------------------------------------- 
     CTimer::CTimer( void ) 
-        : m_fFPS(0.0f), m_fTime1(0.0f), m_fTime2(0.0f), m_fDiffTime(0.0f), m_iFramesElapsed(0), m_fDeltaTime(0.0f)
+        : m_StartTime(std::chrono::steady_clock::now()),
+          m_LastFrameTime(m_StartTime), m_fSampleElapsed(0.0f), m_fDiffTime(0.0f),
+          m_fFPS(0.0f), m_iFramesElapsed(0), m_fDeltaTime(0.0f)
     {   } 
  
     //---------------------------------------------------------- 
@@ -35,36 +31,15 @@
     //---------------------------------------------------------- 
     bool CTimer::Init( void ) 
     { 
-        //check to see if we are going to be using the performance counter 
-        if( QueryPerformanceFrequency( ( LARGE_INTEGER* )&m_i64Frequency ) ) 
-        { 
-            //we are able to use the performance timer 
-            m_bPerformanceTimer= true; 
- 
-            //get the current time and store it in m_i64PerformanceTimerStart 
-            QueryPerformanceCounter( ( LARGE_INTEGER* )&m_i64PerformanceTimerStart ); 
- 
-            //calculate the timer resolution 
-            m_fResolution= ( float )( ( ( double )1.0f )/( ( double )m_i64Frequency ) ); 
- 
-            //initialize the elapsed time variable 
-            m_i64PerformanceTimerElapsed= m_i64PerformanceTimerStart; 
-        } 
- 
-        //we cannot use the performence counter, so we'll use the multimedia counter 
-        else 
-        { 
-            //we're using the multimedia counter 
-            m_bPerformanceTimer= false; 
- 
-            m_ulMMTimerStart   = timeGetTime( );    //record the time the program started 
-            m_ulMMTimerElapsed = m_ulMMTimerStart;  //initialize the elapsed time variable 
-            m_fResolution      = 1.0f/1000.0f; 
-            m_i64Frequency     = 1000; 
-            m_fDeltaTime        = 0.0f;
-        } 
- 
-        return m_bPerformanceTimer; 
+        m_StartTime = std::chrono::steady_clock::now();
+        m_LastFrameTime = m_StartTime;
+        m_fSampleElapsed = 0.0f;
+        m_fDiffTime = 0.0f;
+        m_fFPS = 0.0f;
+        m_iFramesElapsed = 0;
+        m_fDeltaTime = 0.0f;
+
+        return true;
     } 
  
     //---------------------------------------------------------- 
@@ -74,33 +49,27 @@
     // Rets:    None 
     //---------------------------------------------------------- 
     void CTimer::Update( void ) 
-    { 
-        //increase the number of frames that have passed 
-        m_iFramesElapsed++; 
- 
-        if ( m_iFramesElapsed % 5 == 1 ) 
-          m_fTime1 = GetTime( )/1000; 
- 
-        else if ( m_iFramesElapsed % 5 == 0 )  
-        { 
-            m_fTime1 = m_fTime2; 
-            m_fTime2   = GetTime( )/1000; 
-            m_fDiffTime= ( float )fabs( m_fTime2-m_fTime1 );       
-        }   
- 
-        m_fFPS= 5/( m_fDiffTime ); 
- 
-        m_fDeltaTime = (1.0f / m_fFPS * 1000.0f);
- 
-        /*m_fTime2   = GetTime( )/1000; 
-        m_fDiffTime= ( float )fabs( m_fTime2-m_fTime1 ); 
-        if (m_fDiffTime > 1.0f) 
-        { 
-            m_fTime1 = m_fTime2; 
-            m_fFPS= m_iFramesElapsed / ( m_fDiffTime ); 
-            m_iFramesElapsed = 0; 
-        } 
-        */ 
+    {
+        const auto now = std::chrono::steady_clock::now();
+        const float frameSeconds = std::chrono::duration<float>(now - m_LastFrameTime).count();
+        m_LastFrameTime = now;
+
+        if (frameSeconds <= 0.0f)
+            return;
+
+        m_fDiffTime = frameSeconds;
+        m_fDeltaTime = frameSeconds * 1000.0f;
+        m_fSampleElapsed += frameSeconds;
+        ++m_iFramesElapsed;
+
+        // Uma janela de meio segundo evita valores de FPS instaveis sem
+        // esconder quedas reais de desempenho.
+        if (m_fSampleElapsed >= 0.5f)
+        {
+            m_fFPS = static_cast<float>(m_iFramesElapsed) / m_fSampleElapsed;
+            m_fSampleElapsed = 0.0f;
+            m_iFramesElapsed = 0;
+        }
     } 
  
     //---------------------------------------------------------- 
@@ -111,24 +80,8 @@
     //---------------------------------------------------------- 
     float CTimer::GetTime( void ) 
     { 
-         __int64 i64Time; 
- 
-        //check to see if we are using the performance counter 
-        if( m_bPerformanceTimer ) 
-        { 
-            //get the current performance time 
-            QueryPerformanceCounter( ( LARGE_INTEGER* )&i64Time ); 
- 
-            //return the time since the program started 
-            return ( ( float )( i64Time - m_i64PerformanceTimerStart )*m_fResolution )*1000.0f; 
-        } 
- 
-        //we are using the multimedia counter 
-        else 
-        { 
-            //return the time since the program started 
-            return ( ( float )( timeGetTime( ) - m_ulMMTimerStart )*m_fResolution )*1000.0f; 
-        } 
+        const auto elapsed = std::chrono::steady_clock::now() - m_StartTime;
+        return std::chrono::duration<float, std::milli>(elapsed).count();
     } 
  
     //---------------------------------------------------------- 

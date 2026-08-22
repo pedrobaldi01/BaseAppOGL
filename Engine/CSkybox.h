@@ -1,6 +1,6 @@
 #pragma once
-#include <windows.h>
 #include <string>
+#include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <GL/glew.h>

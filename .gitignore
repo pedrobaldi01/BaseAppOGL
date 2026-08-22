@@ -361,3 +361,50 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# ------------------------------------------------------------
+# BaseAppOGL - arquivos locais e gerados
+# ------------------------------------------------------------
+
+# CLion / IDEs JetBrains
+.idea/
+*.iml
+
+# Builds e arquivos gerados pelo CMake
+cmake-build-*/
+build/
+build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+Testing/
+_deps/
+CMakeUserPresets.json
+.tools/
+
+# Artefatos compilados multiplataforma
+*.exe
+*.dll
+*.dylib
+*.so
+*.so.*
+*.a
+*.lib
+*.dSYM/
+*.app/
+
+# Arquivos do sistema operacional
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+
+# Estado local e relatorios gerados ao executar o projeto
+/OpenGL_Info.txt
+/imgui.ini
+
+# Os .obj desta pasta sao modelos 3D Wavefront, nao arquivos de compilacao.
+!/Scenes/Assets/**/*.obj

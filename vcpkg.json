@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "baseappogl",
+  "version-string": "1.0.0",
+  "description": "Dependencias multiplataforma do projeto BaseAppOGL",
+  "dependencies": [
+    "assimp",
+    "freetype",
+    "glew",
+    "glfw3",
+    "glm"
+  ]
+}

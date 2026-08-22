@@ -28,6 +28,8 @@ public:
 		void DrawCube();
 		void DestroyCube();
 
+		void ResetTriangle();
+		void ResetCube();
 
 private:
 
@@ -57,5 +59,21 @@ private:
 	// Declara o Vertex Array Object e o Vertex Buffer Object
 	GLuint triangleVAO, triangleVBO;
 	GLuint cubeVAO, cubeVBO;
+
+	// Variáveis que controlam a translação do cubo através das setas do teclado
+	float fPosX, fPosY, fPosZ, fSpeed;
+
+	// Vetor que controla a escala do cubo
+	glm::vec3 vScale;
+
+	// Controla a velocidade de rotação da pirâmide
+	float fRotSpeed;
+
+	// Habilita ou Desabilita a rotação da pirâmide
+	bool bRot;
+
+	// Cor sólida para o cubo
+	glm::vec4 vCubeColor;
+	bool bCubeColor;
 };
 

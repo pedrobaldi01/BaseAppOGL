@@ -49,6 +49,19 @@ Scene0::Scene0()
 	CreateTriangle();
 	CreateCube();
 
+
+	fPosX = 0.0f;
+	fPosY = 0.0f;
+	fPosZ = 0.0f;
+	fSpeed = 1.0f;
+
+	vScale = glm::vec3(1.0f, 1.0f, 1.0f);
+
+	fRotSpeed = 50.0f;
+	bRot = true;
+
+	vCubeColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	bCubeColor = true;
 }
 
 Scene0::~Scene0()
@@ -140,24 +153,37 @@ void Scene0::DrawScene(float deltaTime)
 	pShader->SetMat4("view", view);
 
 	model = glm::mat4(1.0);
+	
+	model = glm::translate(model, glm::vec3(-5.0f, 0.0f, 0.0f));
+
+	if (bRot == true)
+		model = glm::rotate(model, 
+			glm::radians((float)glfwGetTime() * fRotSpeed), 
+			glm::vec3(0.0f, 1.0f, 0.0f));
+
 	pShader->SetMat4("model", model);
 
+	pShader->SetBool("bCubeColor", false);
+
 	DrawTriangle();
+
+	////////////////////////////////////////////////////////////
+
+	// Desenha o cubo
+	pShader->Use("SolidColor"); // Habilitar o shader para o objeto
+	pShader->SetMat4("projection", projection);
+	pShader->SetMat4("view", view);
+
+	model = glm::mat4(1.0);
+	model = glm::translate(model, glm::vec3(fPosX, fPosY, fPosZ));
+	model = glm::scale(model, vScale);
+
+	pShader->SetMat4("model", model);
+
+	pShader->SetVec4("vCubeColor", vCubeColor);
+	pShader->SetBool("bCubeColor", true);
+
 	DrawCube();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -210,6 +236,22 @@ void Scene0::ProcessSceneInput(GLFWwindow* window, float deltaTime)
 		if (input.IsKeyPressed(GLFW_KEY_Q))
 			pCamera->ProcessKeyboard(DOWN, deltaTime);
 
+
+		// Teclas de controle interativo de posição do cubo
+		if (input.IsKeyPressed(GLFW_KEY_UP))
+			fPosZ -= fSpeed * deltaTime;
+		if (input.IsKeyPressed(GLFW_KEY_DOWN))
+			fPosZ += fSpeed * deltaTime;
+		if (input.IsKeyPressed(GLFW_KEY_LEFT))
+			fPosX -= fSpeed * deltaTime;
+		if (input.IsKeyPressed(GLFW_KEY_RIGHT))
+			fPosX += fSpeed * deltaTime;
+		if (input.IsKeyPressed(GLFW_KEY_PAGE_DOWN))
+			fPosY -= fSpeed * deltaTime;
+		if (input.IsKeyPressed(GLFW_KEY_PAGE_UP))
+			fPosY += fSpeed * deltaTime;
+
+
 		// Increase/decrease movement speed
 		if (input.IsKeyPressed(GLFW_KEY_LEFT_SHIFT))
 			pCamera->MovementSpeed = SPEED_MULTIPLIER;
@@ -239,11 +281,29 @@ void Scene0::ProcessSceneInput(GLFWwindow* window, float deltaTime)
 
 void Scene0::ShowGUI()
 {
+	std::string sRot = bRot ? "Rotation ON" : "Rotation OFF";
+
 	ImGui::Begin("Scene Options:");
 	ImGui::Text("Framebuffer Color:");
 	ImGui::ColorEdit4(" ", (float*)&vFramebufferColor);
 	if (ImGui::Button("Reset Color"))
 		vFramebufferColor = glm::vec4(0.1f, 0.1f, 0.15f, 1.0f);
+	ImGui::End();
+
+	ImGui::Begin("Triangle Options:");
+	ImGui::InputFloat("Rotation Velocity:", &fRotSpeed, 0.0f, 100.0f, "%.1f");
+	if (ImGui::Button(sRot.c_str()))
+		bRot = !bRot;
+	if(ImGui::Button("Reset Triangle"))
+		ResetTriangle();
+	ImGui::End();
+
+	ImGui::Begin("Cube Options:");
+	ImGuiColorEditFlags flags = ImGuiColorEditFlags_Float;
+	ImGui::ColorEdit4("Cube Color", (float*)&vCubeColor, flags);
+	ImGui::SliderFloat3("Scale", (float*)&vScale, 0.01f, 10.0f, "%.2f");
+	if(ImGui::Button("Reset Cube"))
+		ResetCube();
 	ImGui::End();
 }
 
@@ -266,8 +326,8 @@ void Scene0::CreateTriangle()
 			-1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 			 0.0f, 2.0f,  0.0f, 0.0f, 1.0f, 0.0f,
 
-		    -1.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f,
-		    -1.0f,  0.0f,  1.0f, 0.0f, 1.0f, 0.0f,
+			 -1.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f,
+			 -1.0f, 0.0f,  1.0f, 0.0f, 1.0f, 0.0f,
 			 0.0f,  2.0f,  0.0f, 0.0f, 0.0f, 1.0f
 	};
 
@@ -323,55 +383,48 @@ void Scene0::CreateCube()
 {
 	float vertices[] =
 	{
-		// Face da frente
-		// X     Y     Z     R     G     B
-		-1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-		 1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-		-1.0f,  1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+		// positions          // colors
+		 1.0f, -1.0f, -1.0f,  1.0f, 0.0f, 0.0f,
+		-1.0f, -1.0f, -1.0f,  1.0f, 0.0f, 0.0f,
+		-1.0f,  1.0f, -1.0f,  1.0f, 0.0f, 0.0f,
+		-1.0f,  1.0f, -1.0f,  1.0f, 0.0f, 0.0f,
+		 1.0f,  1.0f, -1.0f,  1.0f, 0.0f, 0.0f,
+		 1.0f, -1.0f, -1.0f,  1.0f, 0.0f, 0.0f,
 
-		 1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-		 1.0f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-		-1.0f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+		-1.0f, -1.0f,  1.0f,  0.0f, 1.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f,  0.0f, 1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f,  0.0f, 1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f,  0.0f, 1.0f, 0.0f,
+		-1.0f,  1.0f,  1.0f,  0.0f, 1.0f, 0.0f,
+		-1.0f, -1.0f,  1.0f,  0.0f, 1.0f, 0.0f,
 
-		 1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
-		 1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-		 1.0f,  1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
+		-1.0f,  1.0f,  1.0f,  0.0f, 0.0f, 1.0f,
+		-1.0f,  1.0f, -1.0f,  0.0f, 0.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f,  0.0f, 0.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f,  0.0f, 0.0f, 1.0f,
+		-1.0f, -1.0f,  1.0f,  0.0f, 0.0f, 1.0f,
+		-1.0f,  1.0f,  1.0f,  0.0f, 0.0f, 1.0f,
 
-		 1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-		 1.0f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-		 1.0f,  1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		 1.0f,  1.0f, -1.0f,  1.0f, 1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f,  1.0f, 1.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f,  1.0f, 1.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f,  1.0f, 1.0f, 0.0f,
+		 1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 0.0f,
+		 1.0f,  1.0f, -1.0f,  1.0f, 1.0f, 0.0f,
 
-		-1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
-		 1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
-		-1.0f,  1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
+		-1.0f, -1.0f, -1.0f,  1.0f, 0.0f, 1.0f,
+		 1.0f, -1.0f, -1.0f,  1.0f, 0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f,  1.0f, 0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f,  1.0f, 0.0f, 1.0f,
+		-1.0f, -1.0f,  1.0f,  1.0f, 0.0f, 1.0f,
+		-1.0f, -1.0f, -1.0f,  1.0f, 0.0f, 1.0f,
 
-		 1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-		 1.0f,  1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-		-1.0f,  1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-
-		 -1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
-		 -1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-		 -1.0f,  1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
-
-		 -1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-		 -1.0f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-		 -1.0f,  1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-
-		-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
-		 1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
-		-1.0f,  1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-
-		 1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-		 1.0f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-		-1.0f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-
-		-1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
-		 1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 0.0f,
-		-1.0f,  -1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-
-		 1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-		 1.0f,  -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-		-1.0f,  -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+		-1.0f,  1.0f,  1.0f,  0.0f, 1.0f, 1.0f,
+		 1.0f,  1.0f,  1.0f,  0.0f, 1.0f, 1.0f,
+		 1.0f,  1.0f, -1.0f,  0.0f, 1.0f, 1.0f,
+		 1.0f,  1.0f, -1.0f,  0.0f, 1.0f, 1.0f,
+		-1.0f,  1.0f, -1.0f,  0.0f, 1.0f, 1.0f,
+		-1.0f,  1.0f,  1.0f,  0.0f, 1.0f, 1.0f
 
 	};
 
@@ -416,4 +469,17 @@ void Scene0::DestroyCube()
 {
 	glDeleteVertexArrays(1, &cubeVAO);
 	glDeleteBuffers(1, &cubeVBO);
+}
+
+
+void Scene0::ResetTriangle()
+{
+	bRot = true;
+	fRotSpeed = 50.0f;
+}
+
+void Scene0::ResetCube()
+{
+	vCubeColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	vScale = glm::vec3(1.0f, 1.0f, 1.0f);
 }

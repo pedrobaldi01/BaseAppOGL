@@ -7,7 +7,7 @@ CSceneManager::CSceneManager()
 	this->Scene = NULL;
 
 	bWireframeMode = false; 
-	bVsyncEnabled = true;
+	bVsyncEnabled = false;
 
 	// Inicializa ponteiros das cenas	
 	// Cria a cena principal
@@ -80,7 +80,11 @@ void CSceneManager::ProcessSceneInput(GLFWwindow* window, float deltaTime)
 
 void CSceneManager::ChangeScene(unsigned int _uiCurrentScene)
 {
-	std::system("cls"); // Clear Console on Windows
+#ifdef _WIN32
+	std::system("cls");
+#else
+	std::cout << "\033[2J\033[H";
+#endif
 
 	// Disable Cursor for all scenes
 	InputManager& input = InputManager::GetInstance();
