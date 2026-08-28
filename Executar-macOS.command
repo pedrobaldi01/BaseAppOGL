@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+# Evita que uma simples verificacao tente atualizar todo o Homebrew.
+export HOMEBREW_NO_AUTO_UPDATE=1
+
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_DIR="$PROJECT_DIR/build/macos-release"
 BUILD_ONLY=false
